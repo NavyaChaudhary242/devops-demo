@@ -1,12 +1,16 @@
 pipeline {
     agent any
-    triggers { pollSCM('H/5 * * * *') }
     stages {
-        stage('Checkout') {
-            steps { git branch: 'main', url: 'https://github.com/NavyaChaudhary242/devops-demo.git' }
+        stage('Checkout') { steps { git branch: 'main', url: 'https://github.com/NavyaChaudhary242/devops-demo.git' } }
+        stage('Test') {
+            steps { sh 'python3 -m venv venv && . venv/bin/activate && pip install -q pytest && pytest -v' }
         }
-        stage('Build')  { steps { sh 'echo Building project...' } }
-        stage('Test')   { steps { sh 'echo Running tests...' } }
-        stage('Deploy') { steps { sh 'echo Deploying application...' } }
+        stage('Deploy') {
+            steps { sh 'mkdir -p /var/jenkins_home/deploy && cp calc.py /var/jenkins_home/deploy/' }
+        }
+    }
+    post {
+        success { echo 'Tests passed - application deployed.' }
+        failure { echo 'Tests failed - deployment skipped.' }
     }
 }
